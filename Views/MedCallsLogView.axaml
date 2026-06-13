@@ -1,0 +1,303 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:VAMedicalCallClient.ViewModels"
+             xmlns:models="using:VAMedicalCallClient.Models"
+            x:Class="VAMedicalCallClient.Views.MedCallsLogView"
+            x:DataType="vm:MedCallsLogViewModel"
+            HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch"> 
+
+    <!-- Сетка разделена на 4 строки: 0-Шапка и Тайлы, 1-Таблица, 2-Инфо-панель, 3-Тулбар управления -->
+    <Grid RowDefinitions="Auto, *, Auto, Auto" Margin="10">
+
+        <!-- ================= Row 0: ПАНЕЛЬ ФИЛЬТРОВ И СТАТУСОВ ================= -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *" Margin="0,0,0,15" VerticalAlignment="Center">
+
+            <!-- Левая колонка: Дата  -->
+            <StackPanel Grid.Column="0"
+                        Orientation="Vertical"
+                        Spacing="4"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,70,5">
+                <TextBlock Text="Дата регистрации:" FontSize="14" FontWeight="SemiBold" Foreground="Gray" HorizontalAlignment="Left"/>
+                <CalendarDatePicker SelectedDate="{Binding FilterStartDate, Mode=TwoWay}"
+                                    Width="200" Height="30"
+                                    BorderBrush="#D0D0D0" HorizontalAlignment="Left"/>
+            </StackPanel>
+
+            <!-- Правая колонка: Панель тайлов-фильтров -->
+            <WrapPanel Grid.Column="1" Orientation="Horizontal" ClipToBounds="True" VerticalAlignment="Center">
+                <WrapPanel.Styles>
+                    <!-- Единый стиль для тайлов-индикаторов -->
+                    <Style Selector="Button.tile-btn">
+                        <Setter Property="Width" Value="130"/>
+                        <Setter Property="Height" Value="55"/>
+                        <Setter Property="Margin" Value="0,0,6,6"/>
+                        <Setter Property="CornerRadius" Value="4"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"/>
+                        <Setter Property="Background" Value="{DynamicResource SystemControlTransientBackgroundBrush}"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    </Style>
+                    <!-- Внутренний текст счетчиков -->
+                    <Style Selector="Button.tile-btn TextBlock.count">
+                        <Setter Property="FontSize" Value="16"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                    </Style>
+                    <Style Selector="Button.tile-btn TextBlock.label">
+                        <Setter Property="FontSize" Value="11"/>
+                        <Setter Property="Foreground" Value="Gray"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                    </Style>
+                </WrapPanel.Styles>
+
+                <!-- Тайлы-счетчики -->
+                <Button Classes="tile-btn" Command="{Binding FilterAllCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountAll}" Classes="count" Foreground="#58595B"/>
+                        <TextBlock Text="Все заявки" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="tile-btn" Command="{Binding FilterNewCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountNew}" Classes="count" Foreground="#00CF91"/>
+                        <TextBlock Text="Новые" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="tile-btn" Command="{Binding FilterPendingCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountPending}" Classes="count" Foreground="#0288D1"/>
+                        <TextBlock Text="На согласовании" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="tile-btn" Command="{Binding FilterInWorkCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountInWork}" Classes="count" Foreground="#0097A7"/>
+                        <TextBlock Text="В работе" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="tile-btn" Command="{Binding FilterCompletedCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountCompleted}" Classes="count" Foreground="#4BB462"/>
+                        <TextBlock Text="Завершенные" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="tile-btn" Command="{Binding FilterInsuranceCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountInsurance}" Classes="count" Foreground="#8e44ad"/>
+                        <TextBlock Text="От страховой" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Classes="tile-btn" Command="{Binding FilterCancelledCommand}">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding CountCancelled}" Classes="count" Foreground="#D32F2F"/>
+                        <TextBlock Text="Отмененные" Classes="label"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+        </Grid>
+
+        <!-- ================= Row 1: ТАБЛИЦА ВЫЗОВОВ ================= -->
+        <DataGrid Grid.Row="1"
+                  Name="CallsDataGrid"
+                  ItemsSource="{Binding Calls}"
+                  SelectedItem="{Binding SelectedCall, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  GridLinesVisibility="All"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto">
+
+            <DataGrid.Columns>
+                <!-- ЗАЯВКА -->
+                <DataGridTextColumn Header="Номер" Binding="{Binding Number}" Width="85" />
+                <DataGridTextColumn Header="Дата вызова" Binding="{Binding CallDate, StringFormat='{}{0:dd.MM.yyyy}'}" Width="120" />
+                <DataGridTextColumn Header="Прием" Binding="{Binding ReceptionTime, StringFormat='{}{0:HH:mm}'}" Width="80" />
+                <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="150" />
+
+                <!-- ПАЦИЕНТ -->
+                <DataGridTextColumn Header="ФИО" Binding="{Binding PatientName}" Width="180" />
+                <DataGridTextColumn Header="Дата рождения" Binding="{Binding DateOfBirth, StringFormat='{}{0:dd.MM.yyyy}'}" Width="120" />
+                <DataGridTextColumn Header="Возраст" Binding="{Binding Age}" Width="75" />
+                <DataGridTextColumn Header="Контакт" Binding="{Binding ContactInfo}" Width="180" />
+
+                <!-- АДРЕС -->
+                <DataGridTextColumn Header="Улица" Binding="{Binding AddressStreet}" Width="160" />
+                <DataGridTextColumn Header="Детали адреса" Binding="{Binding AddressDetails}" Width="150" />
+
+                <!-- БРИГАДА -->
+                <DataGridTextColumn Header="№ Бригады" Binding="{Binding BrigadeNumber}" Width="95" />
+                <DataGridTextColumn Header="Врач" Binding="{Binding Doctor}" Width="140" />
+
+                <!-- ЗАКАЗЧИК -->
+                <DataGridTextColumn Header="№ полиса" Binding="{Binding InsuranceNumber}" Width="110" />
+                <DataGridTextColumn Header="Заказчик" Binding="{Binding Customer}" Width="130" />
+                <DataGridTextColumn Header="Стоимость" Binding="{Binding Cost, StringFormat='{}{0:C}'}" Width="100" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ================= Row 2: ПАНЕЛЬ ДЕТАЛЕЙ ВЫЗОВА ================= -->
+        <Border Grid.Row="2"
+                Margin="0,15,0,0"
+                Padding="15"
+                Background="{DynamicResource SystemControlTransientBackgroundBrush}"
+                BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                DataContext="{Binding SelectedCall}"
+                x:DataType="models:MedicalCall"
+                IsVisible="{Binding !!#CallsDataGrid.SelectedItem}">
+
+            <Grid ColumnDefinitions="Auto, Auto, Auto, *" RowDefinitions="Auto">
+
+                <!-- КОЛОНКА 1 (Данные пациента) -->
+                <StackPanel Grid.Column="0" Orientation="Vertical" Spacing="8" Margin="0,0,45,0" MinWidth="220" HorizontalAlignment="Left">
+                    <TextBlock Text="Данные пациента" FontWeight="Bold" Foreground="#4BB462" Margin="0,0,0,5"/>
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <TextBlock Text="ФИО:" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="{Binding PatientName, Mode=OneWay}" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Center" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="30"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <TextBlock Text="Адрес (Улица):" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="{Binding AddressStreet, Mode=OneWay}" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Center" TextWrapping="Wrap" AcceptsReturn="True" MinHeight="30"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <TextBlock Text="Контакты:" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="{Binding ContactInfo, Mode=OneWay}" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Center" TextWrapping="Wrap" MinHeight="30"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <TextBlock Text="№ Полиса:" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="{Binding InsuranceNumber, Mode=OneWay}" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Center" MinHeight="30"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- КОЛОНКА 2 (Тайминги и экипаж) -->
+                <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="10" Margin="0,0,45,0" MinWidth="350" HorizontalAlignment="Left">
+                    <TextBlock Text="Время и данные бригады" FontWeight="Bold" Foreground="#4BB462" Margin="0,0,0,5"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Vertical" Spacing="2" Width="60">
+                            <TextBlock Text="Прием" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                            <TextBox Text="{Binding ReceptionTime, Mode=OneWay, StringFormat='{}{0:HH:mm}'}" IsReadOnly="True" BorderBrush="#D0D0D0" FontSize="12" Padding="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Spacing="2" Width="60">
+                            <TextBlock Text="Выезд" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                            <TextBox Text="{Binding DepartureTime, Mode=OneWay, StringFormat='{}{0:HH:mm}'}" IsReadOnly="True" BorderBrush="#D0D0D0" FontSize="12" Padding="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Spacing="2" Width="60">
+                            <TextBlock Text="Приб." FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                            <TextBox Text="{Binding ArrivalTime, Mode=OneWay, StringFormat='{}{0:HH:mm}'}" IsReadOnly="True" BorderBrush="#D0D0D0" FontSize="12" Padding="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Spacing="2" Width="60">
+                            <TextBlock Text="Оконч." FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                            <TextBox Text="{Binding CompletionTime, Mode=OneWay, StringFormat='{}{0:HH:mm}'}" IsReadOnly="True" BorderBrush="#D0D0D0" FontSize="12" Padding="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Vertical" Spacing="2" Width="60">
+                            <TextBlock Text="Работа." FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                            <TextBox Text="{Binding WorkDuration, Mode=OneWay, StringFormat='{}{0:hh\\.mm}'}" IsReadOnly="True" BorderBrush="#D0D0D0" FontSize="12" Padding="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5" Margin="0,5,0,0" HorizontalAlignment="Left">
+                        <TextBlock Text="Бригада:" Foreground="Gray" Width="65"/>
+                        <TextBlock Text="{Binding BrigadeNumber}" FontWeight="Medium"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="5" HorizontalAlignment="Left">
+                        <TextBlock Text="Врач:" Foreground="Gray" Width="65"/>
+                        <TextBlock Text="{Binding Doctor}" FontWeight="Medium"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- КОЛОНКА 3 (Заключение Memo) -->
+                <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="10" Margin="0,0,45,0" MinWidth="280" HorizontalAlignment="Left">
+                    <TextBlock Text="Медицинское заключение" FontWeight="Bold" Foreground="#4BB462" Margin="0,0,0,5"/>
+                    <StackPanel Orientation="Vertical" Spacing="3">
+                        <TextBlock Text="Диагноз:" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="{Binding Diagnosis, Mode=OneWay}" AcceptsReturn="True" TextWrapping="Wrap" Height="50" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Spacing="3">
+                        <TextBlock Text="Результат:" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="{Binding Conclusion, Mode=OneWay}" AcceptsReturn="True" TextWrapping="Wrap" Height="50" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- КОЛОНКА 4 (История действий) -->
+                <StackPanel Grid.Column="3" Orientation="Vertical" Spacing="10">
+                    <TextBlock Text="История действий" FontWeight="Bold" Foreground="#4BB462" Margin="0,0,0,5"/>
+                    <StackPanel Orientation="Vertical" Spacing="3">
+                        <TextBlock Text="Лог событий (Демо):" Foreground="Gray" FontSize="12"/>
+                        <TextBox Text="[03.06.2026 21:45] Вызов принят диспетчером&#x0a;[03.06.2026 21:47] Передано бригаде №3&#x0a;[03.06.2026 21:50] Бригада выехала на адрес" AcceptsReturn="True" TextWrapping="Wrap" Height="135" IsReadOnly="True" BorderBrush="#D0D0D0" VerticalContentAlignment="Top" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    </StackPanel>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+
+        <!-- ================= Row 3: ТУЛБАРЫ УПРАВЛЕНИЯ ================= -->
+        <Grid Grid.Row="3" Margin="0,15,0,0">
+
+            <!-- === ГРУППА 1: СИНХРОНИЗАЦИЯ  === -->
+            <Border Background="{DynamicResource SystemControlTransientBackgroundBrush}"
+                    BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="6"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center">
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Загрузить (API)" Command="{Binding LoadCallsCommand}"
+                            Background="#0288D1" Foreground="White" FontWeight="SemiBold"
+                            Width="130" Height="32" CornerRadius="4" BorderThickness="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="2,0"/>
+
+                    <Button Content="Отправить (API)" Command="{Binding SendCallsCommand}"
+                            Background="#0097A7" Foreground="White"
+                            Width="130" Height="32" CornerRadius="4" BorderThickness="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="2,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- === ГРУППА 2: РАБОТА СО СПИСКОМ (ПО ЦЕНТРУ) === -->
+            <Border Background="{DynamicResource SystemControlTransientBackgroundBrush}"
+                    BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Создать" Command="{Binding CreateCallCommand}"
+                            Background="#00CF91" Foreground="White" FontWeight="SemiBold"
+                            Width="95" Height="32" CornerRadius="4" BorderThickness="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="2,0"/>
+
+                    <Button Content="Изменить" Command="{Binding EditCallCommand}"
+                            Background="#58595B" Foreground="White"
+                            Width="95" Height="32" CornerRadius="4" BorderThickness="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="2,0"/>
+
+                    <Button Content="Удалить" Command="{Binding DeleteCallCommand}"
+                            Background="#777777" Foreground="White"
+                            Width="95" Height="32" CornerRadius="4" BorderThickness="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="24,0,2,0"/>
+                </StackPanel>
+            </Border>
+
+        </Grid>
+
+
+    </Grid>
+</UserControl>

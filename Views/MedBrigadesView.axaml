@@ -1,0 +1,140 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:VAMedicalCallClient.ViewModels"
+             xmlns:models="using:VAMedicalCallClient.Models"
+             x:Class="VAMedicalCallClient.Views.MedBrigadesView"
+             x:DataType="vm:MedBrigadesViewModel"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
+
+    <!-- Разметка на 3 основные строки: 0-Шапка и фильтры, 1-Таблица бригад, 2-Нижний тулбар -->
+    <Grid RowDefinitions="Auto, *, Auto" Margin="10">
+
+        <!-- ================= Row 0: ШАПКА, ИНФО И ТАЙЛЫ-ФИЛЬТРЫ ================= -->
+        <Grid Grid.Row="0" RowDefinitions="Auto, Auto" Margin="0,0,0,15">
+
+            <!-- Заголовок и описание модуля -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,15" Spacing="4">
+                <TextBlock Text="Сведения о бригадах" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                <TextBlock Text="Модуль мониторинга статуса и текущей работы бригад СМП" FontSize="13" Foreground="Gray"/>
+            </StackPanel>
+
+            <!-- Панель тайлов-статусов бригад -->
+            <WrapPanel Grid.Row="1" Orientation="Horizontal" ClipToBounds="True" VerticalAlignment="Center">
+                <WrapPanel.Styles>
+                    <Style Selector="Button.tile-btn">
+                        <Setter Property="Width" Value="150"/>
+                        <Setter Property="Height" Value="55"/>
+                        <Setter Property="Margin" Value="0,0,6,6"/>
+                        <Setter Property="CornerRadius" Value="4"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"/>
+                        <Setter Property="Background" Value="{DynamicResource SystemControlTransientBackgroundBrush}"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    </Style>
+                    <Style Selector="Button.tile-btn TextBlock.count">
+                        <Setter Property="FontSize" Value="16"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                    </Style>
+                    <Style Selector="Button.tile-btn TextBlock.label">
+                        <Setter Property="FontSize" Value="11"/>
+                        <Setter Property="Foreground" Value="Gray"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                    </Style>
+                </WrapPanel.Styles>
+
+                <!-- 1. Все бригады -->
+                <Button Classes="tile-btn" Command="{Binding FilterAllCommand}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CountAll}" Classes="count" Foreground="#58595B"/>
+                        <TextBlock Text="Все бригады" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 2. Свободна (bsAvailable = 1) -->
+                <Button Classes="tile-btn" Command="{Binding FilterAvailableCommand}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CountAvailable}" Classes="count" Foreground="#4BB462"/>
+                        <TextBlock Text="Свободна" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 3. Подтверждение вызова (bsConfirming = 2) -->
+                <Button Classes="tile-btn" Command="{Binding FilterConfirmingCommand}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CountConfirming}" Classes="count" Foreground="#0288D1"/>
+                        <TextBlock Text="Подтверждение" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 4. Прибыла (bsArrived = 3) -->
+                <Button Classes="tile-btn" Command="{Binding FilterArrivedCommand}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CountArrived}" Classes="count" Foreground="#0097A7"/>
+                        <TextBlock Text="Прибыла" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 5. В работе (bsWorking = 4) -->
+                <Button Classes="tile-btn" Command="{Binding FilterWorkingCommand}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CountWorking}" Classes="count" Foreground="#8E44AD"/>
+                        <TextBlock Text="В работе" Classes="label"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- 6. Без связи (bsNoConnection = 5) -->
+                <Button Classes="tile-btn" Command="{Binding FilterNoConnectionCommand}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding CountNoConnection}" Classes="count" Foreground="#D32F2F"/>
+                        <TextBlock Text="Без связи" Classes="label"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+        </Grid>
+
+        <!-- ================= Row 1: ЖУРНАЛ РАБОТЫ БРИГАД ================= -->
+        <DataGrid Grid.Row="1"
+                  Name="BrigadesDataGrid"
+                  ItemsSource="{Binding Brigades}"
+                  SelectedItem="{Binding SelectedBrigade, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  GridLinesVisibility="All"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Auto">
+
+            <DataGrid.Columns>
+                <!-- Информация о бригаде -->
+                <DataGridTextColumn Header="№ Бригады" Binding="{Binding BrigadeNumber}" Width="120" FontWeight="SemiBold" />
+                <DataGridTextColumn Header="Статус" Binding="{Binding StatusName}" Width="150" />
+
+                <!-- Состав -->
+                <DataGridTextColumn Header="Врач" Binding="{Binding Doctor}" Width="280" />
+                <DataGridTextColumn Header="Фельдшер" Binding="{Binding Paramedic}" Width="280" />
+                <DataGridTextColumn Header="Водитель" Binding="{Binding Driver}" Width="280" />
+
+                <!-- Контакты -->
+                <DataGridTextColumn Header="Телефон 1" Binding="{Binding CommPhone1}" Width="180" />
+                <DataGridTextColumn Header="Телефон 2" Binding="{Binding CommPhone2}" Width="180" />
+
+                <!-- Текущее примечание/комментарий -->
+                <DataGridTextColumn Header="Примечание" Binding="{Binding Comment}" Width="300" />
+            </DataGrid.Columns>
+
+        </DataGrid>
+
+        <!-- ================= Row 2: ТУЛБАР УПРАВЛЕНИЯ ================= -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0" HorizontalAlignment="Right">
+            <Button Content="Обновить" Command="{Binding RefreshCommand}" Width="120" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <Button Content="Карточка бригады" Command="{Binding OpenDetailsCommand}" Width="150" Height="32" Classes="accent" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        </StackPanel>
+
+    </Grid>
+</UserControl>
