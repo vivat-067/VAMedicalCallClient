@@ -28,13 +28,17 @@ public class MainWindowViewModel : ViewModelBase, IScreen
     public ReactiveCommand<Unit, Unit> NavigateToCalls { get; }
     public ReactiveCommand<Unit, Unit> NavigateToBrigades { get; }
 
+    public ReactiveCommand<Unit, Unit> ShowAboutWindow { get; }
+
     public ReactiveCommand<Unit, Unit> ExitApp { get; }
 
     public Interaction<Unit, Unit> ShutdownInteraction { get; }
+    public Interaction<Unit, Unit> ShowAboutInteraction { get; }
 
     public MainWindowViewModel()
     {
         ShutdownInteraction = new Interaction<Unit, Unit>();
+        ShowAboutInteraction = new Interaction<Unit, Unit>();
 
         TogglePane = ReactiveCommand.Create(() => IsPaneOpen = !IsPaneOpen);
 
@@ -55,6 +59,11 @@ public class MainWindowViewModel : ViewModelBase, IScreen
         _currentModuleSubTitle = Router.Navigate
             .Select(vm => vm is IModuleViewModel module ? module.ModuleSubTitle : string.Empty)
             .ToProperty(this, x => x.CurrentModuleSubTitle, string.Empty);
+
+        ShowAboutWindow = ReactiveCommand.CreateFromTask(async () =>
+        {
+            await ShowAboutInteraction.Handle(Unit.Default);
+        });
 
 
         ExitApp = ReactiveCommand.CreateFromTask(async () =>

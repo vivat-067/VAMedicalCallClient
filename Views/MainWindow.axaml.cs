@@ -4,6 +4,8 @@ using ReactiveUI;
 using ReactiveUI.Avalonia;
 using System;
 using System.Reactive;
+
+using System.Reactive.Disposables.Fluent;
 using VAMedicalCallClient.ViewModels;
 
 namespace VAMedicalCallClient.Views;
@@ -21,9 +23,23 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 ViewModel.ShutdownInteraction
                     .RegisterHandler(interaction =>
                     {
-                        this.Close(); 
+                        this.Close();
                         interaction.SetOutput(Unit.Default);
-                    });
+                    })
+                    .DisposeWith(disposables);
+
+                
+                ViewModel.ShowAboutInteraction
+                    .RegisterHandler(async interaction =>
+                    {
+                        var aboutWindow = App.GetService<AboutWindow>();
+                        if (aboutWindow != null)
+                        {                
+                            await aboutWindow.ShowDialog(this);
+                        }
+                        interaction.SetOutput(Unit.Default);
+                    })
+                    .DisposeWith(disposables);
             }
         });
     }
