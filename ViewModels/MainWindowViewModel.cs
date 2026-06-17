@@ -4,6 +4,8 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
+using VAMedicalCallClient.Services;
+
 namespace VAMedicalCallClient.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase, IScreen
@@ -44,7 +46,8 @@ public class MainWindowViewModel : ViewModelBase, IScreen
 
         NavigateToCalls = ReactiveCommand.Create(() =>
         {
-            Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this)).Subscribe();
+            var apiService = App.GetService<IMedicalCallApiService>()!;
+            Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this, apiService)).Subscribe();
         });
 
         NavigateToBrigades = ReactiveCommand.Create(() =>
@@ -72,7 +75,7 @@ public class MainWindowViewModel : ViewModelBase, IScreen
         });
 
         // Стартовый модуль
-        Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this)).Subscribe();
-
+        var apiService = App.GetService<IMedicalCallApiService>()!;
+        Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this, apiService)).Subscribe();
     }
 }

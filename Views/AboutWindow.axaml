@@ -47,11 +47,11 @@
 						HorizontalAlignment="Center">
 
 				<!-- App Name -->
-				<TextBlock FontSize="28"
+				<TextBlock FontSize="30"
 						   FontWeight="Bold"
 						   HorizontalAlignment="Center">
-					<Run Foreground="#FF0000">VA</Run>
-					<Run Foreground="#3498DB">Timer</Run>
+					<Run Foreground="#FF0000">Мед</Run>
+					<Run Foreground="#3498DB">Вызов</Run>
 				</TextBlock>
 
 				<!-- App Version -->

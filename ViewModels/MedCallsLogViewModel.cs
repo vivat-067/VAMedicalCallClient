@@ -11,6 +11,7 @@ using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+
 using VAMedicalCallClient.Models;
 using VAMedicalCallClient.Services;
 
@@ -24,7 +25,7 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     public string ModuleTitle => "Заявки";
     public string ModuleSubTitle => "Регистрация заявок вызова СМП";
 
-    private readonly MedicalCallApiService _apiService;
+    private readonly IMedicalCallApiService _apiService;
 
     public ObservableCollection<MedicalCall> Calls { get; } = new();
 
@@ -66,12 +67,12 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     [Reactive] public partial DateTime? FilterEndDate { get; set; } = DateTime.Today;
     #endregion
 
-    public MedCallsLogViewModel(IScreen hostScreen)
+    public MedCallsLogViewModel(IScreen hostScreen, IMedicalCallApiService apiService)    
     {
         HostScreen = hostScreen;
-        _apiService = new MedicalCallApiService();
+        _apiService = apiService;
 
-        
+
         LoadCallsCommand = ReactiveCommand.CreateFromTask(ExecuteLoadCalls);
         LoadCallsCommand.Subscribe(callsList =>
         {

@@ -28,19 +28,18 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     })
                     .DisposeWith(disposables);
 
-                
+
                 ViewModel.ShowAboutInteraction
                     .RegisterHandler(async interaction =>
                     {
-                        var aboutWindow = App.GetService<AboutWindow>();
-                        if (aboutWindow != null)
-                        {                
-                            await aboutWindow.ShowDialog(this);
-                        }
+                        await new AboutWindow().ShowDialog(this);
                         interaction.SetOutput(Unit.Default);
                     })
                     .DisposeWith(disposables);
+
             }
+
+
         });
     }
 }

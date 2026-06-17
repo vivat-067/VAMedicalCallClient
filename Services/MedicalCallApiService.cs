@@ -9,7 +9,7 @@ using VAMedicalCallClient.Models;
 
 namespace VAMedicalCallClient.Services;
 
-public class MedicalCallApiService
+public class MedicalCallApiService : IMedicalCallApiService
 {
     private readonly HttpClient _httpClient;
 

@@ -8,6 +8,7 @@ using System.Linq;
 
 using VAMedicalCallClient.ViewModels;
 using VAMedicalCallClient.Views;
+using VAMedicalCallClient.Services;
 
 namespace VAMedicalCallClient
 {
@@ -26,9 +27,19 @@ namespace VAMedicalCallClient
 
             var services = new ServiceCollection();
 
+            
+            services.AddSingleton<IMedicalCallApiService, MedicalCallApiService>();
+            //    services.AddSingleton<IMedicalBrigadeService, MedicalBrigadeFileService>();  
+
+
+            var apiService = App.GetService<IMedicalCallApiService>()!;
+
             services.AddSingleton<MainWindowViewModel>();
             services.AddTransient<AboutWindowViewModel>();
-            services.AddTransient<AboutWindow>();
+
+            services.AddTransient<MedCallsLogViewModel>();
+            services.AddTransient<MedBrigadesViewModel>();            
+
 
             serviceProvider = services.BuildServiceProvider();
 

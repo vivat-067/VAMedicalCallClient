@@ -5,8 +5,8 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 	<ApplicationIcon>Assets\app-logo.ico</ApplicationIcon>
-	<AssemblyVersion>2026.06.0613.1308</AssemblyVersion>
-	<FileVersion>2026.06.0613.1308</FileVersion>
+	<AssemblyVersion>2026.06.0617.1250</AssemblyVersion>
+	<FileVersion>2026.06.0617.1250</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

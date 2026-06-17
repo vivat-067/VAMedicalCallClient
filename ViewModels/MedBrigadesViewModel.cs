@@ -21,7 +21,7 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
     // Полный список бригад, загруженный из источника (Файл/API)
     private List<MedicalBrigade> _allSourceBrigades = new();
 
-    // Отфильтрованная коллекция, к которой привязан DataGrid
+    // коллекция, к которой привязан DataGrid
     private ObservableCollection<MedicalBrigade> _brigades = new();
     public ObservableCollection<MedicalBrigade> Brigades
     {
