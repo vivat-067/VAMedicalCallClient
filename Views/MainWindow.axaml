@@ -3,7 +3,8 @@
         xmlns:vm="using:VAMedicalCallClient.ViewModels"
         x:Class="VAMedicalCallClient.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Рабочее место диспетчера" Height="600" Width="900"
+        Title="{StaticResource APPTitle}"
+        Height="600" Width="900"
         Icon="/Assets/app-logo.ico"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"> 
