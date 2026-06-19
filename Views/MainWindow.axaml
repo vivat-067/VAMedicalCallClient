@@ -81,11 +81,20 @@
                     <!-- Элемент: Сведения (Information) -->
                     <Button Command="{Binding ShowAboutWindow}">
                         <StackPanel Orientation="Horizontal" Spacing="15">
-                            <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                                      Width="16" Height="16"/>
+                            <Image Source="/Assets/info.png" Width="20" Height="20"/>                            
+                                      
                             <TextBlock Text="Сведения" Classes="menu-text" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Command="{Binding #}">
+                        <StackPanel Orientation="Horizontal" Spacing="15">
+                            <Image Source="/Assets/options.png" Width="20" Height="20"/>                            
+                                      
+                            <TextBlock Text="Настройка" Classes="menu-text" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
 
                     <!-- Кнопка Выхода -->
                     <Button Command="{Binding ExitApp}">

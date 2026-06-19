@@ -7,11 +7,11 @@
              HorizontalAlignment="Stretch"
              VerticalAlignment="Stretch">
 
-    <!-- Разметка на 3 основные строки: 0-Шапка и фильтры, 1-Таблица бригад, 2-Нижний тулбар -->
-    <Grid RowDefinitions="Auto, *, Auto" Margin="10">
+    <!-- Разметка на 3 основные строки: 0-Шапка и фильтры, 1-Таблица бригад, 2-вызова 3-тулбар управления-->
+      <Grid RowDefinitions="Auto, *, 160, Auto" Margin="10">
 
         <!-- ================= Row 0: ШАПКА, ИНФО И ТАЙЛЫ-ФИЛЬТРЫ ================= -->
-        <Grid Grid.Row="0" RowDefinitions="Auto, Auto" Margin="0,0,0,15">
+         <Grid Grid.Row="0" RowDefinitions="Auto, Auto" Margin="0,0,0,15">
 
             <!-- Заголовок и описание модуля -->
             <StackPanel Grid.Row="0" Margin="0,0,0,15" Spacing="4">
@@ -130,11 +130,52 @@
 
         </DataGrid>
 
-        <!-- ================= Row 2: ТУЛБАР УПРАВЛЕНИЯ ================= -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0" HorizontalAlignment="Right">
+        
+       <!-- ================= Row 2: ПАНЕЛЬ DETAILS ================= -->        
+        <Expander Grid.Row="2"
+                  Name="BrigadeDetailsPanel"
+                  IsExpanded="True"
+                  ExpandDirection="Down"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Stretch"
+                  Margin="0,10,0,0"
+                  CornerRadius="4"
+                  BorderThickness="1"
+                  BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
+                  Background="{DynamicResource SystemControlTransientBackgroundBrush}">
+            
+            <!-- Заголовок expander -->
+            <Expander.Header>
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="4">
+                    <Image Source="/Assets/health.png" Width="20" Height="20"/>                                               
+                    <TextBlock Text="Вызовы бригады"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Expander.Header>
+
+            <!-- Содержимое expander  -->
+            <Border MinHeight="120"
+                    Padding="10"
+                    Background="{DynamicResource SystemControlPageBackgroundBaseLowBrush}">
+                <TextBlock Text="список вызовов выбранной бригады"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="13"
+                           Foreground="Gray"
+                           FontStyle="Italic"/>
+            </Border>
+
+        </Expander>
+
+
+        <!-- ================= Row 3: ТУЛБАР УПРАВЛЕНИЯ ================= -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="10" Margin="0,15,0,0" HorizontalAlignment="Right">
             <Button Content="Обновить" Command="{Binding RefreshCommand}" Width="120" Height="32" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             <Button Content="Карточка бригады" Command="{Binding OpenDetailsCommand}" Width="150" Height="32" Classes="accent" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
         </StackPanel>
+
 
     </Grid>
 </UserControl>
