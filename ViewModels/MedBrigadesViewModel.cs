@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -6,8 +7,9 @@ using System.Linq;
 using System.Reactive;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ReactiveUI;
+
 using VAMedicalCallClient.Models;
+using VAMedicalCallClient.Services;
 
 namespace VAMedicalCallClient.ViewModels;
 
@@ -18,7 +20,10 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
     public string ModuleTitle => "Бригады";
     public string ModuleSubTitle => "Мониторинг статуса и загрузки бригад СМП";
 
-    // Полный список бригад, загруженный из источника (Файл/API)
+
+    private readonly IMedicalBrigadeDataService _brigadeDataService;
+
+    //Список бригад, загруженный из cервиса (datasource)
     private List<MedicalBrigade> _allSourceBrigades = new();
 
     // коллекция, к которой привязан DataGrid
@@ -68,9 +73,10 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
 
 
     // ================= КОНСТРУКТОР =================
-    public MedBrigadesViewModel(IScreen hostScreen)
+    public MedBrigadesViewModel(IScreen hostScreen, IMedicalBrigadeDataService brigadeDataService)
     {
         HostScreen = hostScreen;
+        _brigadeDataService = brigadeDataService;
 
         // Привязка команд фильтрации к общему методу с передачей нужного статуса
         FilterAllCommand = ReactiveCommand.Create(() => ApplyFilter(null));

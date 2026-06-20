@@ -52,7 +52,8 @@ public class MainWindowViewModel : ViewModelBase, IScreen
 
         NavigateToBrigades = ReactiveCommand.Create(() =>
         {
-            Router.NavigateAndReset.Execute(new MedBrigadesViewModel(this)).Subscribe();
+            var apiService = App.GetService<IMedicalBrigadeDataService>()!;
+            Router.NavigateAndReset.Execute(new MedBrigadesViewModel(this, apiService)).Subscribe();
         });
 
         _currentModuleTitle = Router.Navigate

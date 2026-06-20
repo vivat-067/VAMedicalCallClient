@@ -28,8 +28,8 @@ namespace VAMedicalCallClient
             var services = new ServiceCollection();
 
             
-            services.AddSingleton<IMedicalCallApiService, MedicalCallApiService>();
-            //    services.AddSingleton<IMedicalBrigadeService, MedicalBrigadeFileService>();  
+            services.AddSingleton<IMedicalCallApiService, MedicalCallApiService>();            
+            services.AddSingleton<IMedicalBrigadeDataService, MedicalBrigadeDataService>();
 
 
             var apiService = App.GetService<IMedicalCallApiService>()!;
