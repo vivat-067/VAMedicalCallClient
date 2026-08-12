@@ -3,9 +3,13 @@
 		xmlns:vm="using:VAMedicalCallClient.ViewModels"
 		x:Class="VAMedicalCallClient.Views.AboutWindow"		
 		x:DataType="vm:AboutWindowViewModel"
+<<<<<<< HEAD
 		Title="{StaticResource APPTitle}"
+=======
+		Title="МедВызов"
+>>>>>>> Оптимизация кода фильтрации списков по статусам бригад и по статусам заявок
 		Width="450"
-		Height="380"
+		Height="380"		
 		WindowStartupLocation="CenterOwner"
 		CanMinimize="False"
 		CanResize="False">
@@ -36,9 +40,15 @@
 			<!-- APP Logo -->
 			<Rectangle Grid.Column="0" Width="220"/>  <!-- Fill="#4BB462" -->
 
+<<<<<<< HEAD
 			<Image  Width="220"
 					Height="220"
 					Source="/Assets/about.png"
+=======
+			<Image  Width="200"
+					Height="165"
+					Source="/Assets/vamcc-about.png"
+>>>>>>> Оптимизация кода фильтрации списков по статусам бригад и по статусам заявок
 					Stretch="Uniform"
 					VerticalAlignment="Center"/>
 
@@ -51,8 +61,13 @@
 				<TextBlock FontSize="28"
 						   FontWeight="Bold"
 						   HorizontalAlignment="Center">
+<<<<<<< HEAD
 					<Run Foreground="#FF0000">Мед</Run>
 					<Run Foreground="#00CF91">Вызов</Run>
+=======
+					<Run Foreground="#FF0000">VA</Run>
+					<Run Foreground="#3498DB">MedCall</Run>
+>>>>>>> Оптимизация кода фильтрации списков по статусам бригад и по статусам заявок
 				</TextBlock>
 
 				<!-- App Version -->

@@ -46,7 +46,7 @@
                 </WrapPanel.Styles>
 
                 <!-- 1. Все бригады -->
-                <Button Classes="tile-btn" Command="{Binding FilterAllCommand}">
+                <Button Classes="tile-btn" Command="{Binding ChangeFilterCommand}"  CommandParameter="{x:Null}" >
                     <StackPanel>
                         <TextBlock Text="{Binding CountAll}" Classes="count" Foreground="#58595B"/>
                         <TextBlock Text="Все бригады" Classes="label"/>
@@ -54,7 +54,7 @@
                 </Button>
 
                 <!-- 2. Свободна (bsAvailable = 1) -->
-                <Button Classes="tile-btn" Command="{Binding FilterAvailableCommand}">
+                <Button Classes="tile-btn" Command="{Binding ChangeFilterCommand}"  CommandParameter="{x:Static models:BrigadeStatus.Available}">
                     <StackPanel>
                         <TextBlock Text="{Binding CountAvailable}" Classes="count" Foreground="#4BB462"/>
                         <TextBlock Text="Свободна" Classes="label"/>
@@ -62,7 +62,7 @@
                 </Button>
 
                 <!-- 3. Подтверждение вызова (bsConfirming = 2) -->
-                <Button Classes="tile-btn" Command="{Binding FilterConfirmingCommand}">
+                <Button Classes="tile-btn" Command="{Binding ChangeFilterCommand}"  CommandParameter="{x:Static models:BrigadeStatus.Confirming}">
                     <StackPanel>
                         <TextBlock Text="{Binding CountConfirming}" Classes="count" Foreground="#0288D1"/>
                         <TextBlock Text="Подтверждение" Classes="label"/>
@@ -70,7 +70,7 @@
                 </Button>
 
                 <!-- 4. Прибыла (bsArrived = 3) -->
-                <Button Classes="tile-btn" Command="{Binding FilterArrivedCommand}">
+                <Button Classes="tile-btn" Command="{Binding ChangeFilterCommand}" CommandParameter="{x:Static models:BrigadeStatus.Arrived}">
                     <StackPanel>
                         <TextBlock Text="{Binding CountArrived}" Classes="count" Foreground="#0097A7"/>
                         <TextBlock Text="Прибыла" Classes="label"/>
@@ -78,7 +78,7 @@
                 </Button>
 
                 <!-- 5. В работе (bsWorking = 4) -->
-                <Button Classes="tile-btn" Command="{Binding FilterWorkingCommand}">
+                <Button Classes="tile-btn" Command="{Binding ChangeFilterCommand}" CommandParameter="{x:Static models:BrigadeStatus.Working}">
                     <StackPanel>
                         <TextBlock Text="{Binding CountWorking}" Classes="count" Foreground="#8E44AD"/>
                         <TextBlock Text="В работе" Classes="label"/>
@@ -86,7 +86,7 @@
                 </Button>
 
                 <!-- 6. Без связи (bsNoConnection = 5) -->
-                <Button Classes="tile-btn" Command="{Binding FilterNoConnectionCommand}">
+                <Button Classes="tile-btn" Command="{Binding ChangeFilterCommand}" CommandParameter="{x:Static models:BrigadeStatus.NoConnection}">
                     <StackPanel>
                         <TextBlock Text="{Binding CountNoConnection}" Classes="count" Foreground="#D32F2F"/>
                         <TextBlock Text="Без связи" Classes="label"/>
