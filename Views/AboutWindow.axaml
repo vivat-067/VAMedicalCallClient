@@ -1,18 +1,11 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:vm="using:VAMedicalCallClient.ViewModels"
-		x:Class="VAMedicalCallClient.Views.AboutWindow"		
-		x:DataType="vm:AboutWindowViewModel"
-<<<<<<< HEAD
-		Title="{StaticResource APPTitle}"
-=======
-		Title="МедВызов"
->>>>>>> Оптимизация кода фильтрации списков по статусам бригад и по статусам заявок
-		Width="450"
-		Height="380"		
-		WindowStartupLocation="CenterOwner"
-		CanMinimize="False"
-		CanResize="False">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VAMedicalCallClient.ViewModels"
+        x:Class="VAMedicalCallClient.Views.AboutWindow"		
+        x:DataType="vm:AboutWindowViewModel"        
+        WindowStartupLocation="CenterOwner"
+        CanMinimize="False"
+        CanResize="False">
 
 	<Design.DataContext>
 		<vm:AboutWindowViewModel/>
@@ -27,103 +20,94 @@
 
 	<Grid RowDefinitions="Auto,*,Auto" Margin="20">
 
+		<!-- ================= Row 0: Заголовок окна ================= -->
 		<StackPanel Grid.Row="0" Spacing="10">
 			<TextBlock Text="О ПРОГРАММЕ"
 					   FontSize="18"
-					   FontWeight="Bold"/>
-			<Border  BorderBrush="Gray" BorderThickness="1" >
-			</Border>
+					   FontWeight="Bold"
+					   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+			<Border BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}" BorderThickness="0,0,0,1" />
 		</StackPanel>
 
-		<Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,20,0,20">
+		<!-- ================= Row 1: Контент (Логотип + Инфо) ================= -->
+		<Grid Grid.Row="1" ColumnDefinitions="210,*" Margin="0,15,0,15">
 
-			<!-- APP Logo -->
-			<Rectangle Grid.Column="0" Width="220"/>  <!-- Fill="#4BB462" -->
+			<!-- Левая колонка (Column 0): Контейнер для логотипа -->
+			<Panel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+				<Rectangle Width="200" Height="165" RadiusX="4" RadiusY="4"/>  
+				
+				<Image Width="200"
+					   Height="165"
+					   Source="/Assets/vamcc-about.png"
+					   Stretch="Uniform"
+					   VerticalAlignment="Center"
+					   HorizontalAlignment="Center"/>
+			</Panel>
 
-<<<<<<< HEAD
-			<Image  Width="220"
-					Height="220"
-					Source="/Assets/about.png"
-=======
-			<Image  Width="200"
-					Height="165"
-					Source="/Assets/vamcc-about.png"
->>>>>>> Оптимизация кода фильтрации списков по статусам бригад и по статусам заявок
-					Stretch="Uniform"
-					VerticalAlignment="Center"/>
+			<!-- Правая колонка (Column 1): Информационный блок -->
+			<StackPanel Grid.Column="1" 
+						Margin="15,0,0,0"
+						VerticalAlignment="Center"
+						HorizontalAlignment="Stretch"
+						Spacing="2">
 
-			<!-- APP info -->
-			<StackPanel Grid.Column="1" Margin="10,0,0,0"
-						VerticalAlignment="Top"
-						HorizontalAlignment="Center">
-
-				<!-- App Name -->
-				<TextBlock FontSize="28"
+				<!-- Название приложения -->
+				<TextBlock FontSize="26"
 						   FontWeight="Bold"
 						   HorizontalAlignment="Center">
-<<<<<<< HEAD
-					<Run Foreground="#FF0000">Мед</Run>
-					<Run Foreground="#00CF91">Вызов</Run>
-=======
 					<Run Foreground="#FF0000">VA</Run>
 					<Run Foreground="#3498DB">MedCall</Run>
->>>>>>> Оптимизация кода фильтрации списков по статусам бригад и по статусам заявок
 				</TextBlock>
 
-				<!-- App Version -->
+				<!-- Версии -->
 				<TextBlock Text="{Binding MajorVersion}"
 						   HorizontalAlignment="Center"
 						   FontWeight="Bold"
 						   FontSize="14"
-						   Margin="0,10,0,5"/>
+						   Margin="0,5,0,2"/>
 
 				<TextBlock Text="{Binding BuildVersion}"
 						   HorizontalAlignment="Center"
 						   FontSize="12"
-						   Opacity="0.7"
-						   Margin="0,0,0,0"/>
+						   Opacity="0.7"/>
 
-				<TextBlock Text="C# Avalonia ReactiveUI MVVM "
+				<!-- Технологический стек -->
+				<TextBlock Text="C# Avalonia ReactiveUI MVVM"
 						   HorizontalAlignment="Center"
 						   FontSize="10"
-						   Opacity="0.7"
-						   Margin="0,0,0,15"/>
+						   Opacity="0.5"
+						   Margin="0,0,0,10"/>
 
-
-
-				<!-- App Description -->
+				<!-- Описание -->
 				<TextBlock Text="{StaticResource APPDescription}"
 						   HorizontalAlignment="Center"
 						   TextAlignment="Center"
-						   FontSize="14"
+						   FontSize="13"
 						   TextWrapping="Wrap"/>
 
+				<!-- Контакты разработчика -->
 				<TextBlock Text="{Binding DeveloperEmail}"
 						   Classes="email"
 						   HorizontalAlignment="Center"
-						   VerticalAlignment="Center"
 						   FontSize="12"
 						   Margin="0,10,0,0"/>
-
-
-		</StackPanel>
+			</StackPanel> 
 		</Grid>
 
-		<!-- Close Button -->
+		<!-- ================= Row 2: Нижняя панель с кнопкой закрытия ================= -->		
 		<Border Grid.Row="2"
-				BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+				BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}"
 				BorderThickness="0,1,0,0"
 				Padding="0,15,0,0">
-			<Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
-					Content="OK"
+			
+			<Button Content="OK"
 					Width="95"
+					Height="32"
 					IsDefault="True"
 					Command="{Binding CloseWindowCommand}"
 					HorizontalContentAlignment="Center"
-					HorizontalAlignment="Right"
-					VerticalAlignment="Bottom"/>
-
+					VerticalContentAlignment="Center"
+					HorizontalAlignment="Right"/>
 		</Border>
 	</Grid>
-
 </Window>

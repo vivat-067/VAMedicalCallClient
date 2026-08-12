@@ -1,15 +1,15 @@
-﻿using ReactiveUI;
+﻿using Avalonia.Threading;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-
 using VAMedicalCallClient.Models;
-using VAMedicalCallClient.Services;
 
 namespace VAMedicalCallClient.ViewModels;
 
@@ -20,19 +20,11 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
     public string ModuleTitle => "Бригады";
     public string ModuleSubTitle => "Мониторинг статуса и загрузки бригад СМП";
 
-
-    private readonly IMedicalBrigadeDataService _brigadeDataService;
-
-    //Список бригад, загруженный из cервиса (datasource)
+    // Полный список бригад, загруженный из источника (выступает в роли кэша)
     private List<MedicalBrigade> _allSourceBrigades = new();
 
-    // коллекция, к которой привязан DataGrid
-    private ObservableCollection<MedicalBrigade> _brigades = new();
-    public ObservableCollection<MedicalBrigade> Brigades
-    {
-        get => _brigades;
-        set => this.RaiseAndSetIfChanged(ref _brigades, value);
-    }
+    // Коллекция, к которой привязана сетка DataGrid в UI
+    public ObservableCollection<MedicalBrigade> Brigades { get; } = new();
 
     private MedicalBrigade? _selectedBrigade;
     public MedicalBrigade? SelectedBrigade
@@ -41,7 +33,14 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
         set => this.RaiseAndSetIfChanged(ref _selectedBrigade, value);
     }
 
-    // ================= СЧЕТЧИКИ ДЛЯ ТАЙЛОВ СТАТУСОВ (DELPHI) =================
+    private BrigadeStatus? _selectedStatusFilter;
+    public BrigadeStatus? SelectedStatusFilter
+    {
+        get => _selectedStatusFilter;
+        set => this.RaiseAndSetIfChanged(ref _selectedStatusFilter, value);
+    }
+
+    // ================= СЧЕТЧИКИ ДЛЯ ТАЙЛОВ СТАТУСОВ (СМП) =================
     private int _countAll;
     public int CountAll { get => _countAll; private set => this.RaiseAndSetIfChanged(ref _countAll, value); }
 
@@ -61,104 +60,89 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
     public int CountNoConnection { get => _countNoConnection; private set => this.RaiseAndSetIfChanged(ref _countNoConnection, value); }
 
 
-    // ================= КОМАНДЫ ФИЛЬТРАЦИИ И УПРАВЛЕНИЯ =================
-    public ReactiveCommand<Unit, Unit> FilterAllCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterAvailableCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterConfirmingCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterArrivedCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterWorkingCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterNoConnectionCommand { get; }
+    // ================= КОМАНДЫ УПРАВЛЕНИЯ И ФИЛЬТРАЦИИ =================
+    public ReactiveCommand<BrigadeStatus?, Unit> ChangeFilterCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDetailsCommand { get; }
 
 
     // ================= КОНСТРУКТОР =================
-    public MedBrigadesViewModel(IScreen hostScreen, IMedicalBrigadeDataService brigadeDataService)
+    public MedBrigadesViewModel(IScreen hostScreen)
     {
         HostScreen = hostScreen;
-        _brigadeDataService = brigadeDataService;
 
-        // Привязка команд фильтрации к общему методу с передачей нужного статуса
-        FilterAllCommand = ReactiveCommand.Create(() => ApplyFilter(null));
-        FilterAvailableCommand = ReactiveCommand.Create(() => ApplyFilter(BrigadeStatus.Available));
-        FilterConfirmingCommand = ReactiveCommand.Create(() => ApplyFilter(BrigadeStatus.Confirming));
-        FilterArrivedCommand = ReactiveCommand.Create(() => ApplyFilter(BrigadeStatus.Arrived));
-        FilterWorkingCommand = ReactiveCommand.Create(() => ApplyFilter(BrigadeStatus.Working));
-        FilterNoConnectionCommand = ReactiveCommand.Create(() => ApplyFilter(BrigadeStatus.NoConnection));
+        // Команда изменения фильтра 
+        ChangeFilterCommand = ReactiveCommand.Create<BrigadeStatus?>(status => SelectedStatusFilter = status);
 
         // Асинхронные команды управления
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadDataAsync);
         OpenDetailsCommand = ReactiveCommand.Create(() => { /* Логика открытия карточки */ });
-
-        // Первичный запуск загрузки данных
-        _ = LoadDataAsync();
+        
+        RefreshCommand.Execute().Subscribe();
+        
+        this.ObservableForProperty(x => x.SelectedStatusFilter)
+            .Subscribe(change => ApplyFilter(change.Value));
     }
 
 
     // ================= МЕТОДЫ ЛОГИКИ И АНАЛИЗА ДАННЫХ =================
 
     /// <summary>
-    /// Асинхронная загрузка данных (из локального файла с заготовкой под API)
+    /// Асинхронная загрузка данных из JSON-файла конфигурации
     /// </summary>
     private async Task LoadDataAsync()
     {
         try
         {
-            string jsonRawData = string.Empty;
             string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "brigades.json");
-
-            if (File.Exists(filePath))
-            {
-                jsonRawData = await File.ReadAllTextAsync(filePath);
-            }
-            else
-            {
-                jsonRawData = "[]";
-            }
-
-            // РЕЗЕРВ ДЛЯ СЕРВЕРА: jsonRawData = await _apiClient.GetBrigadesJsonAsync();
+            string jsonRawData = File.Exists(filePath) ? await File.ReadAllTextAsync(filePath) : "[]";
 
             var parsedBrigades = JsonSerializer.Deserialize<MedicalBrigade[]>(jsonRawData);
 
-            if (parsedBrigades != null)
+            // Перенаправляем обновление списков и счетчиков строго в UI-поток Avalonia
+            Dispatcher.UIThread.Post(() =>
             {
-                // Сохраняем эталонный неизменяемый список для фильтрации
-                _allSourceBrigades = parsedBrigades.ToList();
-
-                // Рассчитываем глобальные счетчики на основе всех данных
+                _allSourceBrigades = parsedBrigades?.ToList() ?? new List<MedicalBrigade>();
                 RecalculateCounters();
-
-                // По умолчанию показываем все бригады
-                ApplyFilter(null);
-            }
+                ApplyFilter(SelectedStatusFilter);
+            });
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Ошибка загрузки бригад: {ex.Message}");
-            _allSourceBrigades.Clear();
-            Brigades = new ObservableCollection<MedicalBrigade>();
-            ResetCounters();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                _allSourceBrigades.Clear();
+                Brigades.Clear();
+                ResetCounters();
+            });
         }
     }
 
     /// <summary>
-    /// Применение фильтра к таблице на основе выбранного статуса
+    /// Применение выбранного фильтра к отображаемой таблице
     /// </summary>
     private void ApplyFilter(BrigadeStatus? targetStatus)
     {
-        if (targetStatus == null)
-        {            
-            Brigades = new ObservableCollection<MedicalBrigade>(_allSourceBrigades);
-        }
-        else
-        {         
-            var filtered = _allSourceBrigades.Where(b => b.Status == targetStatus);
-            Brigades = new ObservableCollection<MedicalBrigade>(filtered);
-        }
+        // Выполняем очистку и наполнение коллекции внутри потока отрисовки интерфейса
+        Dispatcher.UIThread.Post(() =>
+        {
+            Brigades.Clear();
+
+            var filtered = targetStatus == null
+                ? _allSourceBrigades
+                : _allSourceBrigades.Where(b => b.Status == targetStatus);
+
+            foreach (var brigade in filtered)
+            {
+                Brigades.Add(brigade);
+            }
+        });
     }
 
     /// <summary>
-    /// Пересчет индикаторов-тайлов 
+    /// Пересчет индикаторов-тайлов на основе неизменяемого кэша данных
     /// </summary>
     private void RecalculateCounters()
     {

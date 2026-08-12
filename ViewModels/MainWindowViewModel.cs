@@ -4,8 +4,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-using VAMedicalCallClient.Services;
-
 namespace VAMedicalCallClient.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase, IScreen
@@ -39,21 +37,21 @@ public class MainWindowViewModel : ViewModelBase, IScreen
 
     public MainWindowViewModel()
     {
+        // Перенесено обратно в конструктор в исходном виде
         ShutdownInteraction = new Interaction<Unit, Unit>();
         ShowAboutInteraction = new Interaction<Unit, Unit>();
 
         TogglePane = ReactiveCommand.Create(() => IsPaneOpen = !IsPaneOpen);
 
+        // Исходные вызовы БЕЗ параметров apiService
         NavigateToCalls = ReactiveCommand.Create(() =>
         {
-            var apiService = App.GetService<IMedicalCallApiService>()!;
-            Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this, apiService)).Subscribe();
+            Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this)).Subscribe();
         });
 
         NavigateToBrigades = ReactiveCommand.Create(() =>
         {
-            var apiService = App.GetService<IMedicalBrigadeDataService>()!;
-            Router.NavigateAndReset.Execute(new MedBrigadesViewModel(this, apiService)).Subscribe();
+            Router.NavigateAndReset.Execute(new MedBrigadesViewModel(this)).Subscribe();
         });
 
         _currentModuleTitle = Router.Navigate
@@ -69,14 +67,12 @@ public class MainWindowViewModel : ViewModelBase, IScreen
             await ShowAboutInteraction.Handle(Unit.Default);
         });
 
-
         ExitApp = ReactiveCommand.CreateFromTask(async () =>
         {
             await ShutdownInteraction.Handle(Unit.Default);
         });
 
-        // Стартовый модуль
-        var apiService = App.GetService<IMedicalCallApiService>()!;
-        Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this, apiService)).Subscribe();
+        // Исходный стартовый модуль без параметров
+        Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this)).Subscribe();
     }
 }

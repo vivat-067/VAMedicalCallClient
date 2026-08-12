@@ -5,13 +5,11 @@ using ReactiveUI.SourceGenerators;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-
+using Avalonia.Threading; // Используем Dispatcher.UIThread вместо AvaloniaScheduler для стабильности в 12.1
 using VAMedicalCallClient.Models;
 using VAMedicalCallClient.Services;
 
@@ -25,8 +23,10 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     public string ModuleTitle => "Заявки";
     public string ModuleSubTitle => "Регистрация заявок вызова СМП";
 
-    private readonly IMedicalCallApiService _apiService;
+    private readonly MedicalCallApiService _apiService;
 
+    // Эталонный архив данных для фильтрации
+    private List<MedicalCall> _allSourceCalls = new();
     public ObservableCollection<MedicalCall> Calls { get; } = new();
 
     #region Commands
@@ -40,20 +40,13 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     public ReactiveCommand<Unit, Unit> PrintAccompanyingSheetCommand { get; }
     public ReactiveCommand<Unit, Unit> ExportToExcelCommand { get; }
 
-    public ReactiveCommand<Unit, Unit> FilterAllCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterNewCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterPendingCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterInWorkCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterCompletedCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterInsuranceCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterCancelledCommand { get; }
+    // Вместо 7 команд — ОДНА универсальная
+    public ReactiveCommand<CallStatus?, Unit> ChangeFilterCommand { get; }
     #endregion
 
     #region Properties
-    [Reactive]
-    public partial MedicalCall? SelectedCall { get; set; }
+    [Reactive] public partial MedicalCall? SelectedCall { get; set; }
 
-    // Реактивные свойства счетчиков для привязки к тайлам в XAML
     [Reactive] public partial int CountAll { get; set; }
     [Reactive] public partial int CountNew { get; set; }
     [Reactive] public partial int CountPending { get; set; }
@@ -62,95 +55,95 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     [Reactive] public partial int CountInsurance { get; set; }
     [Reactive] public partial int CountCancelled { get; set; }
 
-    
     [Reactive] public partial DateTime? FilterStartDate { get; set; } = DateTime.Today;
     [Reactive] public partial DateTime? FilterEndDate { get; set; } = DateTime.Today;
+
+    // Хранит текущий выбранный фильтр (null — Все)
+    [Reactive] public partial CallStatus? SelectedStatusFilter { get; set; }
     #endregion
 
-    public MedCallsLogViewModel(IScreen hostScreen, IMedicalCallApiService apiService)    
+    public MedCallsLogViewModel(IScreen hostScreen)
     {
         HostScreen = hostScreen;
-        _apiService = apiService;
+        _apiService = new MedicalCallApiService();
 
+        // 1. Настройка универсальной команды фильтра
+        ChangeFilterCommand = ReactiveCommand.Create<CallStatus?>(status => SelectedStatusFilter = status);
 
+        // 2. Обработка загрузки данных
         LoadCallsCommand = ReactiveCommand.CreateFromTask(ExecuteLoadCalls);
         LoadCallsCommand.Subscribe(callsList =>
         {
-            AvaloniaScheduler.Instance.Schedule(_ =>
+            Dispatcher.UIThread.Post(() =>
             {
-                Calls.Clear();
-                if (callsList != null)
-                {
-                    foreach (var call in callsList)
-                    {
-                        Calls.Add(call);
-                    }
-
-                    if (Calls.Count > 0)
-                    {
-                        SelectedCall = Calls[0];
-                    }
-                    else
-                    {
-                        SelectedCall = null;
-                    }
-                }
+                _allSourceCalls = callsList ?? new List<MedicalCall>();
+                RecalculateStatuses();
+                ApplyFilter(SelectedStatusFilter);
             });
         });
 
-        // Отслеживаем изменения в коллекции Calls для обновления счетчиков 
-        Observable.FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
-            x => Calls.CollectionChanged += x,
-            x => Calls.CollectionChanged -= x)
-            .Subscribe(_ => RecalculateStatuses());
+        // 3. Отслеживание изменения фильтра через постоянную реактивную цепочку
+        this.ObservableForProperty(x => x.SelectedStatusFilter)
+            .Subscribe(change => ApplyFilter(change.Value));
 
-        // Условие активации кнопок управления
-        IObservable<bool> isCallSelected = this.WhenAnyValue(x => x.SelectedCall)
-                                              .Select(call => call != null);
+        // Условие активации кнопок управления (реактивное свойство)
+        var isCallSelected = this.WhenAnyValue(x => x.SelectedCall)
+                         .Select(call => call != null);
 
-        // Инициализация базовых команд
+
+        // 4. Инициализация базовых команд
         SendCallsCommand = ReactiveCommand.Create(() => { });
         CreateCallCommand = ReactiveCommand.Create(() => { });
         EditCallCommand = ReactiveCommand.Create(() => { }, isCallSelected);
 
         DeleteCallCommand = ReactiveCommand.Create(() =>
         {
-            AvaloniaScheduler.Instance.Schedule(_ =>
+            if (SelectedCall != null)
             {
-                if (SelectedCall != null)
-                {
-                    Calls.Remove(SelectedCall);
-                    SelectedCall = null;
-                }
-            });
+                // Удаляем из эталонного списка и обновляем UI
+                _allSourceCalls.Remove(SelectedCall);
+                RecalculateStatuses();
+                ApplyFilter(SelectedStatusFilter);
+            }
         }, isCallSelected);
 
         PrintCallCardCommand = ReactiveCommand.Create(() => { }, isCallSelected);
         PrintAccompanyingSheetCommand = ReactiveCommand.Create(() => { }, isCallSelected);
         ExportToExcelCommand = ReactiveCommand.Create(() => { }, isCallSelected);
 
-        // заглушки для фильтров-тайлов
-        FilterAllCommand = ReactiveCommand.Create(() => { });
-        FilterNewCommand = ReactiveCommand.Create(() => { });
-        FilterPendingCommand = ReactiveCommand.Create(() => { });
-        FilterInWorkCommand = ReactiveCommand.Create(() => { });
-        FilterCompletedCommand = ReactiveCommand.Create(() => { });
-        FilterInsuranceCommand = ReactiveCommand.Create(() => { });
-        FilterCancelledCommand = ReactiveCommand.Create(() => { });
+        // Автоматический первичный запуск загрузки данных
+        LoadCallsCommand.Execute().Subscribe();
+    }
+
+    private void ApplyFilter(CallStatus? targetStatus)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            Calls.Clear();
+
+            var filtered = targetStatus == null
+                ? _allSourceCalls
+                : _allSourceCalls.Where(c => c.StatusId == (int)targetStatus);
+
+            foreach (var call in filtered)
+            {
+                Calls.Add(call);
+            }
+
+            SelectedCall = Calls.FirstOrDefault();
+        });
     }
 
     private void RecalculateStatuses()
     {
-        AvaloniaScheduler.Instance.Schedule(_ =>
-        {
-            CountAll = Calls.Count;
-            CountNew = Calls.Count(c => c.StatusId == (int)CallStatus.New);
-            CountPending = Calls.Count(c => c.StatusId == (int)CallStatus.csPending);
-            CountInWork = Calls.Count(c => c.StatusId == (int)CallStatus.csInWork);
-            CountCompleted = Calls.Count(c => c.StatusId == (int)CallStatus.csCompleted);
-            CountInsurance = Calls.Count(c => c.StatusId == (int)CallStatus.csFromInsurance);
-            CountCancelled = Calls.Count(c => c.StatusId == (int)CallStatus.csCancelled);
-        });
+        // Расчет ведем строго по эталонному кэшу _allSourceCalls, а не по UI-коллекции!
+        CountAll = _allSourceCalls.Count;
+        CountNew = _allSourceCalls.Count(c => c.StatusId == (int)CallStatus.New);
+        CountPending = _allSourceCalls.Count(c => c.StatusId == (int)CallStatus.csPending);
+        CountInWork = _allSourceCalls.Count(c => c.StatusId == (int)CallStatus.csInWork);
+        CountCompleted = _allSourceCalls.Count(c => c.StatusId == (int)CallStatus.csCompleted);
+        CountInsurance = _allSourceCalls.Count(c => c.StatusId == (int)CallStatus.csFromInsurance);
+        CountCancelled = _allSourceCalls.Count(c => c.StatusId == (int)CallStatus.csCancelled);
     }
 
     private async Task<List<MedicalCall>> ExecuteLoadCalls()
