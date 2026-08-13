@@ -1,94 +1,79 @@
 ﻿using Avalonia.Threading;
 using ReactiveUI;
+using ReactiveUI.SourceGenerators;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+
+
+
 using VAMedicalCallClient.Models;
 
 namespace VAMedicalCallClient.ViewModels;
 
-public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleViewModel
+public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleViewModel
 {
+    #region Metadata Properties
     public string? UrlPathSegment => "med-brigades";
     public IScreen HostScreen { get; }
     public string ModuleTitle => "Бригады";
     public string ModuleSubTitle => "Мониторинг статуса и загрузки бригад СМП";
+    #endregion
 
-    // Полный список бригад, загруженный из источника (выступает в роли кэша)
+    #region Fields
     private List<MedicalBrigade> _allSourceBrigades = new();
+    #endregion
 
-    // Коллекция, к которой привязана сетка DataGrid в UI
+    #region Collections
     public ObservableCollection<MedicalBrigade> Brigades { get; } = new();
+    #endregion
 
-    private MedicalBrigade? _selectedBrigade;
-    public MedicalBrigade? SelectedBrigade
-    {
-        get => _selectedBrigade;
-        set => this.RaiseAndSetIfChanged(ref _selectedBrigade, value);
-    }
-
-    private BrigadeStatus? _selectedStatusFilter;
-    public BrigadeStatus? SelectedStatusFilter
-    {
-        get => _selectedStatusFilter;
-        set => this.RaiseAndSetIfChanged(ref _selectedStatusFilter, value);
-    }
-
-    // ================= СЧЕТЧИКИ ДЛЯ ТАЙЛОВ СТАТУСОВ (СМП) =================
-    private int _countAll;
-    public int CountAll { get => _countAll; private set => this.RaiseAndSetIfChanged(ref _countAll, value); }
-
-    private int _countAvailable;
-    public int CountAvailable { get => _countAvailable; private set => this.RaiseAndSetIfChanged(ref _countAvailable, value); }
-
-    private int _countConfirming;
-    public int CountConfirming { get => _countConfirming; private set => this.RaiseAndSetIfChanged(ref _countConfirming, value); }
-
-    private int _countArrived;
-    public int CountArrived { get => _countArrived; private set => this.RaiseAndSetIfChanged(ref _countArrived, value); }
-
-    private int _countWorking;
-    public int CountWorking { get => _countWorking; private set => this.RaiseAndSetIfChanged(ref _countWorking, value); }
-
-    private int _countNoConnection;
-    public int CountNoConnection { get => _countNoConnection; private set => this.RaiseAndSetIfChanged(ref _countNoConnection, value); }
-
-
-    // ================= КОМАНДЫ УПРАВЛЕНИЯ И ФИЛЬТРАЦИИ =================
+    #region Commands
     public ReactiveCommand<BrigadeStatus?, Unit> ChangeFilterCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDetailsCommand { get; }
+    #endregion
+
+    #region Properties
+    [Reactive] public partial MedicalBrigade? SelectedBrigade { get; set; }
+    [Reactive] public partial BrigadeStatus? SelectedStatusFilter { get; set; }
+
+    [Reactive] public partial int CountAll { get; set; }
+    [Reactive] public partial int CountAvailable { get; set; }
+    [Reactive] public partial int CountConfirming { get; set; }
+    [Reactive] public partial int CountArrived { get; set; }
+    [Reactive] public partial int CountWorking { get; set; }
+    [Reactive] public partial int CountNoConnection { get; set; }
+    #endregion
 
 
-    // ================= КОНСТРУКТОР =================
     public MedBrigadesViewModel(IScreen hostScreen)
     {
         HostScreen = hostScreen;
-
-        // Команда изменения фильтра 
+        
         ChangeFilterCommand = ReactiveCommand.Create<BrigadeStatus?>(status => SelectedStatusFilter = status);
-
-        // Асинхронные команды управления
+        
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadDataAsync);
         OpenDetailsCommand = ReactiveCommand.Create(() => { /* Логика открытия карточки */ });
-        
+
         RefreshCommand.Execute().Subscribe();
-        
+
         this.ObservableForProperty(x => x.SelectedStatusFilter)
             .Subscribe(change => ApplyFilter(change.Value));
     }
 
-
-    // ================= МЕТОДЫ ЛОГИКИ И АНАЛИЗА ДАННЫХ =================
+    
 
     /// <summary>
-    /// Асинхронная загрузка данных из JSON-файла конфигурации
+    /// Асинхронная загрузка данных из JSON-файла 
     /// </summary>
     private async Task LoadDataAsync()
     {
@@ -99,7 +84,6 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
 
             var parsedBrigades = JsonSerializer.Deserialize<MedicalBrigade[]>(jsonRawData);
 
-            // Перенаправляем обновление списков и счетчиков строго в UI-поток Avalonia
             Dispatcher.UIThread.Post(() =>
             {
                 _allSourceBrigades = parsedBrigades?.ToList() ?? new List<MedicalBrigade>();
@@ -124,8 +108,7 @@ public class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, IModuleV
     /// Применение выбранного фильтра к отображаемой таблице
     /// </summary>
     private void ApplyFilter(BrigadeStatus? targetStatus)
-    {
-        // Выполняем очистку и наполнение коллекции внутри потока отрисовки интерфейса
+    {        
         Dispatcher.UIThread.Post(() =>
         {
             Brigades.Clear();

@@ -126,7 +126,8 @@
                            CanUserReorderColumns="True"
                            CanUserResizeColumns="True"
                            HorizontalScrollBarVisibility="Auto"
-                           VerticalScrollBarVisibility="Auto">
+                           VerticalScrollBarVisibility="Auto">    
+
 
                      <DataGrid.Columns>
                          <!-- ЗАЯВКА -->
