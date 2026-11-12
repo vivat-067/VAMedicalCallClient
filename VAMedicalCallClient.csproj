@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
 	<ApplicationIcon>Assets\app-logo.ico</ApplicationIcon>
-	<AssemblyVersion>2026.06.0620.1406</AssemblyVersion>
-	<FileVersion>2026.06.0620.1406</FileVersion>
+	<AssemblyVersion>2026.06.1112.1753</AssemblyVersion>
+	<FileVersion>2026.06.1112.1753</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
