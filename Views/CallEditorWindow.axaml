@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VAMedicalCallClient.ViewModels"
+        x:Class="VAMedicalCallClient.Views.CallEditorWindow"
+        x:DataType="vm:CallEditorViewModel"
+        Title="{Binding WindowTitle}"
+        Width="560"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanMinimize="False"
+        CanResize="False">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- Заголовок -->
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="{Binding WindowTitle}" FontSize="18" FontWeight="Bold"/>
+            <Border BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}" BorderThickness="0,0,0,1"/>
+        </StackPanel>
+
+        <!-- Поля формы -->
+        <StackPanel Grid.Row="1" Spacing="10" Margin="0,15">
+            <Grid ColumnDefinitions="120,*,120,*">
+                <TextBlock Grid.Column="0" Text="Номер заявки:" VerticalAlignment="Center"/>
+                <NumericUpDown Grid.Column="1" Value="{Binding Number}" Minimum="0" FormatString="0" Margin="0,0,15,0"/>
+                
+                <TextBlock Grid.Column="2" Text="Статус:" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="3" ItemsSource="{Binding CallStatuses}" SelectedItem="{Binding Status}" HorizontalAlignment="Stretch"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="120,*,80,100">
+                <TextBlock Grid.Column="0" Text="ФИО пациента*:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding PatientName}" PlaceholderText="Иванов Иван Иванович" Margin="0,0,15,0"/>
+
+                <TextBlock Grid.Column="2" Text="Возраст:" VerticalAlignment="Center"/>
+                <NumericUpDown Grid.Column="3" Value="{Binding Age}" Minimum="0" Maximum="130" FormatString="0"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="120,*">
+                <TextBlock Grid.Column="0" Text="Улица, дом*:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding AddressStreet}" PlaceholderText="ул. Красная, д. 10"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="120,*,100,*">
+                <TextBlock Grid.Column="0" Text="Подъезд / кв.:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding AddressDetails}" Margin="0,0,15,0"/>
+
+                <TextBlock Grid.Column="2" Text="Телефон:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="3" Text="{Binding ContactInfo}"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="120,*">
+                <TextBlock Grid.Column="0" Text="Повод / Жалобы:" VerticalAlignment="Top" Margin="0,6,0,0"/>
+                <TextBox Grid.Column="1" Text="{Binding Complaints}" Height="60" AcceptsReturn="True" TextWrapping="Wrap"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="120,*,100,*">
+                <TextBlock Grid.Column="0" Text="Бригада №:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding BrigadeNumber}" Margin="0,0,15,0"/>
+
+                <TextBlock Grid.Column="2" Text="Тип оплаты:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="3" Text="{Binding PaymentType}"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="120,*">
+                <TextBlock Grid.Column="0" Text="Примечание:" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding Comment}"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- Кнопки -->
+        <Border Grid.Row="2" BorderBrush="{DynamicResource SystemControlGridLinesBaseMediumLowBrush}" BorderThickness="0,1,0,0" Padding="0,15,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Content="Отмена" Width="100" IsCancel="True" Command="{Binding CancelCommand}" HorizontalContentAlignment="Center"/>
+                <Button Content="Сохранить" Width="110" IsDefault="True" Command="{Binding SaveCommand}" HorizontalContentAlignment="Center" Classes="accent"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

@@ -41,6 +41,10 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     public ObservableCollection<MedicalCall> Calls { get; } = new();
     #endregion
 
+    #region Interactions
+    public Interaction<CallEditorViewModel, MedicalCall?> ShowCallEditorInteraction { get; } = new();
+    #endregion
+
     #region Commands
     public ReactiveCommand<Unit, List<MedicalCall>> LoadCallsCommand { get; }
     public ReactiveCommand<Unit, Unit> SendCallsCommand { get; }
@@ -160,10 +164,14 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     {
         if (SelectedCall == null) return;
 
-        // TODO: 
-        // var dialogResult = await _dialogService.ShowCallEditorDialog(SelectedCall);
-        // if (dialogResult == DialogResult.Ok) { ... }
-        //        await Task.CompletedTask;}}
-    }
+        var editorVm = new CallEditorViewModel(SelectedCall);
+        var updatedCall = await ShowCallEditorInteraction.Handle(editorVm);
 
+        if (updatedCall != null)
+        {
+            RecalculateStatuses();
+            ApplyFilter(SelectedStatusFilter);
+            SelectedCall = updatedCall;
+        }
+    }
 }

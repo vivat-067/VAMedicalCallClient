@@ -73,8 +73,7 @@ public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, 
           .Select(brigade => brigade != null);
 
         OpenDetailsCommand = ReactiveCommand.Create(() => { /* Логика открытия карточки */ }, isBrigadeSelected);
-
-        //RefreshCommand.Execute().Subscribe();
+        
         this.WhenAnyValueUnsafe(x => x.SelectedStatusFilter)
          .Skip(1)
          .ObserveOn(RxSchedulers.MainThreadScheduler)

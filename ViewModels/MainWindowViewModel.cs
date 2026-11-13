@@ -3,7 +3,7 @@ using System;                             // Метод расширения .Su
 
 // Реактивное программирование (System.Reactive)
 using System.Reactive;                    // Тип Unit для команд и Interaction
-using System.Reactive.Linq;               // Операторы Select и Handle
+using System.Reactive.Linq;               
 
 // ReactiveUI 24+
 using ReactiveUI;                         // Метод расширения RaiseAndSetIfChanged
