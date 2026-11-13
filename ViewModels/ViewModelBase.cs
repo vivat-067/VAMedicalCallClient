@@ -1,8 +1,8 @@
-﻿using ReactiveUI;
+﻿using ReactiveUI.Reactive;
 
-namespace VAMedicalCallClient.ViewModels
-{
+namespace VAMedicalCallClient.ViewModels;
+
     public abstract class ViewModelBase : ReactiveObject
     {
     }
-}
+

@@ -1,26 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Reflection;
+
 
 namespace VAMedicalCallClient.Services
 {
     public static class SystemInfoService
     {
+        private static readonly Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
 
         public static string GetMajorVersion()
         {
-            var fileVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(
-                              System.Reflection.Assembly.GetExecutingAssembly().Location
-                                ).FileVersion;
-            return fileVersion?.ToString() ?? "2025.11";
+            var fileVersionAttr = CurrentAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+            if (!string.IsNullOrWhiteSpace(fileVersionAttr?.Version))            
+                return fileVersionAttr.Version;            
+            
+            if (!string.IsNullOrEmpty(Environment.ProcessPath))            
+                return FileVersionInfo.GetVersionInfo(Environment.ProcessPath).FileVersion ?? "2025.11";            
+
+            return "2026.11";
         }
 
         public static string GetBuildVersion()
         {
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            var version = assembly.GetName().Version;
+            var version = CurrentAssembly.GetName().Version;
             return version?.ToString() ?? "2025.11.19.1111";
         }
 

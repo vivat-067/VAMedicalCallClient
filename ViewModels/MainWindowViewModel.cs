@@ -1,8 +1,13 @@
-﻿using ReactiveUI;
-using System;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
+﻿// Базовые типы (.NET)
+using System;                             // Метод расширения .Subscribe()
+
+// Реактивное программирование (System.Reactive)
+using System.Reactive;                    // Тип Unit для команд и Interaction
+using System.Reactive.Linq;               // Операторы Select и Handle
+
+// ReactiveUI 24+
+using ReactiveUI;                         // Метод расширения RaiseAndSetIfChanged
+using ReactiveUI.Reactive;                // RoutingState, IScreen, ReactiveCommand, Interaction
 
 namespace VAMedicalCallClient.ViewModels;
 
@@ -10,11 +15,20 @@ public class MainWindowViewModel : ViewModelBase, IScreen
 {
     public RoutingState Router { get; } = new();
 
-    private readonly ObservableAsPropertyHelper<string> _currentModuleTitle;
-    public string CurrentModuleTitle => _currentModuleTitle.Value;
+    // [ИЗМЕНЕНО] Замена ObservableAsPropertyHelper на обычные свойства с RaiseAndSetIfChanged
+    private string _currentModuleTitle = "Информационная система";
+    public string CurrentModuleTitle
+    {
+        get => _currentModuleTitle;
+        private set => this.RaiseAndSetIfChanged(ref _currentModuleTitle, value);
+    }
 
-    private readonly ObservableAsPropertyHelper<string> _currentModuleSubTitle;
-    public string CurrentModuleSubTitle => _currentModuleSubTitle.Value;
+    private string _currentModuleSubTitle = string.Empty;
+    public string CurrentModuleSubTitle
+    {
+        get => _currentModuleSubTitle;
+        private set => this.RaiseAndSetIfChanged(ref _currentModuleSubTitle, value);
+    }
 
     private bool _isPaneOpen;
     public bool IsPaneOpen
@@ -24,26 +38,18 @@ public class MainWindowViewModel : ViewModelBase, IScreen
     }
 
     public ReactiveCommand<Unit, bool> TogglePane { get; }
-
     public ReactiveCommand<Unit, Unit> NavigateToCalls { get; }
     public ReactiveCommand<Unit, Unit> NavigateToBrigades { get; }
-
     public ReactiveCommand<Unit, Unit> ShowAboutWindow { get; }
-
     public ReactiveCommand<Unit, Unit> ExitApp { get; }
 
-    public Interaction<Unit, Unit> ShutdownInteraction { get; }
-    public Interaction<Unit, Unit> ShowAboutInteraction { get; }
+    public Interaction<Unit, Unit> ShutdownInteraction { get; } = new();
+    public Interaction<Unit, Unit> ShowAboutInteraction { get; } = new();
 
     public MainWindowViewModel()
     {
-        // Перенесено обратно в конструктор в исходном виде
-        ShutdownInteraction = new Interaction<Unit, Unit>();
-        ShowAboutInteraction = new Interaction<Unit, Unit>();
-
         TogglePane = ReactiveCommand.Create(() => IsPaneOpen = !IsPaneOpen);
 
-        // Исходные вызовы БЕЗ параметров apiService
         NavigateToCalls = ReactiveCommand.Create(() =>
         {
             Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this)).Subscribe();
@@ -54,13 +60,14 @@ public class MainWindowViewModel : ViewModelBase, IScreen
             Router.NavigateAndReset.Execute(new MedBrigadesViewModel(this)).Subscribe();
         });
 
-        _currentModuleTitle = Router.Navigate
-           .Select(vm => vm is IModuleViewModel module ? module.ModuleTitle : "Информационная система")
-           .ToProperty(this, x => x.CurrentModuleTitle, "Информационная система");
+        // [ИЗМЕНЕНО] Прямая подписка на поток навигации вместо ToPropertyUnsafe
+        Router.Navigate
+            .Select(vm => vm is IModuleViewModel module ? module.ModuleTitle : "Информационная система")
+            .Subscribe(title => CurrentModuleTitle = title);
 
-        _currentModuleSubTitle = Router.Navigate
+        Router.Navigate
             .Select(vm => vm is IModuleViewModel module ? module.ModuleSubTitle : string.Empty)
-            .ToProperty(this, x => x.CurrentModuleSubTitle, string.Empty);
+            .Subscribe(subTitle => CurrentModuleSubTitle = subTitle);
 
         ShowAboutWindow = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -72,7 +79,7 @@ public class MainWindowViewModel : ViewModelBase, IScreen
             await ShutdownInteraction.Handle(Unit.Default);
         });
 
-        // Исходный стартовый модуль без параметров
+        // Стартовый модуль при открытии главного окна
         Router.NavigateAndReset.Execute(new MedCallsLogViewModel(this)).Subscribe();
     }
 }

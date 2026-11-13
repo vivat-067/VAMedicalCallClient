@@ -3,7 +3,10 @@
         xmlns:vm="using:VAMedicalCallClient.ViewModels"
         x:Class="VAMedicalCallClient.Views.AboutWindow"		
         x:DataType="vm:AboutWindowViewModel"        
+		Title=""
         WindowStartupLocation="CenterOwner"
+		Width="460"
+        Height="310"
         CanMinimize="False"
         CanResize="False">
 
@@ -38,7 +41,7 @@
 				
 				<Image Width="200"
 					   Height="165"
-					   Source="/Assets/vamcc-about.png"
+					    Source="avares://VAMedicalCallClient/Assets/about.png"
 					   Stretch="Uniform"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Center"/>

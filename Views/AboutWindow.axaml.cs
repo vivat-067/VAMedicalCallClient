@@ -1,7 +1,12 @@
-using ReactiveUI;
-using ReactiveUI.Avalonia;
-using System.Reactive;
-using System.Reactive.Disposables.Fluent;
+// Базовые типы и реактивное программирование (.NET / System.Reactive)
+using System;
+using System.Reactive;                        
+using System.Reactive.Disposables.Fluent;     
+
+// ReactiveUI 24+ и интеграция с Avalonia 12.1
+using ReactiveUI;                             
+using ReactiveUI.Reactive;                    
+using ReactiveUI.Avalonia.Reactive;           // Базовые классы ReactiveWindow<T> и ReactiveUserControl<T>
 
 using VAMedicalCallClient.ViewModels;
 
@@ -22,6 +27,8 @@ public partial class AboutWindow : ReactiveWindow<AboutWindowViewModel>
         // Handle the close interaction
         this.WhenActivated(disposables =>
         {
+            if (ViewModel is not { } vm) return;
+
             ViewModel.CloseWindowInteraction
                     .RegisterHandler(interaction =>
                     {

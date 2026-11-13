@@ -1,18 +1,27 @@
-﻿using Avalonia.Threading; 
-using ReactiveUI;
-using ReactiveUI.Avalonia;
-using ReactiveUI.SourceGenerators;
+﻿// Базовые типы и коллекции .NET
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reactive;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
+
+// Реактивное программирование (System.Reactive)
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+
+// ReactiveUI 24+ и генераторы исходного кода
+using ReactiveUI;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
+
+// пространства имён проекта
 using VAMedicalCallClient.Models;
 using VAMedicalCallClient.Services;
 
+
 namespace VAMedicalCallClient.ViewModels;
+
 
 public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, IModuleViewModel
 {
@@ -66,25 +75,27 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
     {
         HostScreen = hostScreen;
         _apiService = new MedicalCallApiService();
+
         ChangeFilterCommand = ReactiveCommand.Create<CallStatus?>(status => SelectedStatusFilter = status);
-
-
         LoadCallsCommand = ReactiveCommand.CreateFromTask(ExecuteLoadCalls);
-        LoadCallsCommand.Subscribe(callsList =>
-        {
-            Dispatcher.UIThread.Post(() =>
-            {
-                _allSourceCalls = callsList ?? new List<MedicalCall>();
-                RecalculateStatuses();
-                ApplyFilter(SelectedStatusFilter);
-            });
-        });
 
-        this.ObservableForProperty(x => x.SelectedStatusFilter)
-            .Subscribe(change => ApplyFilter(change.Value));
+        LoadCallsCommand
+          .ObserveOn(RxSchedulers.MainThreadScheduler)
+          .Subscribe(callsList =>
+          {
+              _allSourceCalls = callsList ?? [];
+              RecalculateStatuses();
+              ApplyFilter(SelectedStatusFilter);
+          });
+        
+        this.WhenAnyValueUnsafe(x => x.SelectedStatusFilter)
+            .Skip(1)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
+            .Subscribe(ApplyFilter);
+
 
         // Условие активации кнопок управления 
-        var isCallSelected = this.WhenAnyValue(x => x.SelectedCall)
+        var isCallSelected = this.WhenAnyValueUnsafe(x => x.SelectedCall)
                          .Select(call => call != null);
 
         SendCallsCommand = ReactiveCommand.Create(() => { });
@@ -113,8 +124,6 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
 
     private void ApplyFilter(CallStatus? targetStatus)
     {
-        Dispatcher.UIThread.Post(() =>
-        {
             Calls.Clear();
             var filtered = targetStatus == null
                 ? _allSourceCalls
@@ -126,7 +135,6 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
             }
 
             SelectedCall = Calls.FirstOrDefault();
-        });
 
     }
 
@@ -154,7 +162,8 @@ public partial class MedCallsLogViewModel : ReactiveObject, IRoutableViewModel, 
 
         // TODO: 
         // var dialogResult = await _dialogService.ShowCallEditorDialog(SelectedCall);
-        // if (dialogResult == DialogResult.Ok) { ... }await Task.CompletedTask;}}
+        // if (dialogResult == DialogResult.Ok) { ... }
+        //        await Task.CompletedTask;}}
     }
 
 }

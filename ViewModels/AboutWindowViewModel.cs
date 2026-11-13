@@ -1,7 +1,17 @@
-﻿using ReactiveUI;
-using System.Reactive;
-using System.Reactive.Linq;
+﻿// Базовые типы и коллекции .NET
+using System;
 using System.Threading.Tasks;
+
+// Реактивное программирование (System.Reactive)
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+
+// ReactiveUI 24+ и генераторы исходного кода
+using ReactiveUI;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
+
 
 namespace VAMedicalCallClient.ViewModels
 {
@@ -25,11 +35,11 @@ namespace VAMedicalCallClient.ViewModels
         public AboutWindowViewModel()
         {
             string majorVersionInfo = Services.SystemInfoService.GetMajorVersion();
-            string buldVersionInfo = Services.SystemInfoService.GetBuildVersion();
+            string buildVersionInfo = Services.SystemInfoService.GetBuildVersion();
             string platformInfo = Services.SystemInfoService.GetPlatformInfo();
 
             MajorVersion = majorVersionInfo.Substring(0, 7);
-            BuildVersion = $"({platformInfo[0]}:{buldVersionInfo[..^2]})";
+            BuildVersion = $"({platformInfo[0]}:{buildVersionInfo[..^2]})";
 
             CloseWindowCommand = ReactiveCommand.CreateFromTask(CloseWindow);
         }

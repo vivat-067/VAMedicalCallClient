@@ -1,21 +1,26 @@
-﻿using Avalonia.Threading;
-using ReactiveUI;
-using ReactiveUI.SourceGenerators;
-
+﻿// Базовые типы и коллекции .NET
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
+using System.IO;
+using System.Text.Json;
 
+// Реактивное программирование (System.Reactive)
+using System.Reactive;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 
+// ReactiveUI 24+ и генераторы исходного кода
+using ReactiveUI;
+using ReactiveUI.Reactive;
+using ReactiveUI.SourceGenerators;
+
+// пространства имён проекта
 using VAMedicalCallClient.Models;
+using VAMedicalCallClient.Services;
 
 namespace VAMedicalCallClient.ViewModels;
 
@@ -46,7 +51,8 @@ public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, 
     [Reactive] public partial MedicalBrigade? SelectedBrigade { get; set; }
     [Reactive] public partial BrigadeStatus? SelectedStatusFilter { get; set; }
 
-    [Reactive] public partial int CountAll { get; set; }
+    [Reactive] public partial int CountAll { get; set; }  
+
     [Reactive] public partial int CountAvailable { get; set; }
     [Reactive] public partial int CountConfirming { get; set; }
     [Reactive] public partial int CountArrived { get; set; }
@@ -62,12 +68,19 @@ public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, 
         ChangeFilterCommand = ReactiveCommand.Create<BrigadeStatus?>(status => SelectedStatusFilter = status);
         
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadDataAsync);
-        OpenDetailsCommand = ReactiveCommand.Create(() => { /* Логика открытия карточки */ });
 
-        RefreshCommand.Execute().Subscribe();
+        var isBrigadeSelected = this.WhenAnyValueUnsafe(x => x.SelectedBrigade)
+          .Select(brigade => brigade != null);
 
-        this.ObservableForProperty(x => x.SelectedStatusFilter)
-            .Subscribe(change => ApplyFilter(change.Value));
+        OpenDetailsCommand = ReactiveCommand.Create(() => { /* Логика открытия карточки */ }, isBrigadeSelected);
+
+        //RefreshCommand.Execute().Subscribe();
+        this.WhenAnyValueUnsafe(x => x.SelectedStatusFilter)
+         .Skip(1)
+         .ObserveOn(RxSchedulers.MainThreadScheduler)
+         .Subscribe(ApplyFilter);
+
+        Observable.Return(Unit.Default).InvokeCommand(RefreshCommand);
     }
 
     
@@ -79,28 +92,22 @@ public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, 
     {
         try
         {
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data", "brigades.json");
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "brigades.json");
             string jsonRawData = File.Exists(filePath) ? await File.ReadAllTextAsync(filePath) : "[]";
+            
+            var parsedBrigades = JsonSerializer.Deserialize<List<MedicalBrigade>>(jsonRawData);
 
-            var parsedBrigades = JsonSerializer.Deserialize<MedicalBrigade[]>(jsonRawData);
-
-            Dispatcher.UIThread.Post(() =>
-            {
-                _allSourceBrigades = parsedBrigades?.ToList() ?? new List<MedicalBrigade>();
-                RecalculateCounters();
-                ApplyFilter(SelectedStatusFilter);
-            });
+            _allSourceBrigades = parsedBrigades ?? new List<MedicalBrigade>();
+            RecalculateCounters();
+            ApplyFilter(SelectedStatusFilter);
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Ошибка загрузки бригад: {ex.Message}");
 
-            Dispatcher.UIThread.Post(() =>
-            {
-                _allSourceBrigades.Clear();
+               _allSourceBrigades.Clear();
                 Brigades.Clear();
-                ResetCounters();
-            });
+                ResetCounters();      
         }
     }
 
@@ -109,8 +116,6 @@ public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, 
     /// </summary>
     private void ApplyFilter(BrigadeStatus? targetStatus)
     {        
-        Dispatcher.UIThread.Post(() =>
-        {
             Brigades.Clear();
 
             var filtered = targetStatus == null
@@ -121,7 +126,9 @@ public partial class MedBrigadesViewModel : ReactiveObject, IRoutableViewModel, 
             {
                 Brigades.Add(brigade);
             }
-        });
+
+        SelectedBrigade = Brigades.FirstOrDefault();
+
     }
 
     /// <summary>

@@ -11,7 +11,7 @@
 
 using System;
 using Avalonia;
-using ReactiveUI.Avalonia;
+using ReactiveUI.Avalonia.Reactive;
 
 namespace VAMedicalCallClient
 {
